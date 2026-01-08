@@ -1,0 +1,80 @@
+name: Test
+
+# CINTENT >> MANUAL_TRIGGER
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
+#   schedule:
+#     - cron: "0 5 1,15 * *"
+on: [repository_dispatch, workflow_dispatch]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # to fail on error in multiline statements (-e), in pipes (-o pipefail), and on unset variables (-u).
+    shell: bash -euo pipefail {0}
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # # CINTENT >> REMOVE_MATRIX
+          # - os: ubuntu-latest
+          #   python: "3.10"
+          
+          - os: ubuntu-latest
+            python: "3.12"
+          
+          # CINTENT >> REMOVE_MATRIX
+          # - os: ubuntu-latest
+          #   python: "3.12"
+          #   pip-flags: "--pre"
+          #   name: PRE-RELEASE DEPENDENCIES
+
+    name: ${{ matrix.name }} Python ${{ matrix.python }}
+
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          fetch-depth: 0
+  
+      # CINTENT >> INSERT_CINTENT
+      - uses: JavidDitty/setup-cintent@a606c80c34ec190c6a20dea33d6d58ddb6c4e0cc
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: run tests using hatch
+        env:
+          MPLBACKEND: agg
+          PLATFORM: ${{ matrix.os }}
+          DISPLAY: :42
+        run: uvx hatch test --cover --python ${{ matrix.python }}
+
+      # CINTENT >> REMOVE_UPLOADS
+      # - name: Upload coverage
+      #   uses: codecov/codecov-action@v4
+
+      # CINTENT >> INSERT_CINTENT
+      - name: Upload CIntent Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ env.CINTENT_ARTIFACT_NAME }}
+          path: ${{ env.CINTENT_LOGS }}
