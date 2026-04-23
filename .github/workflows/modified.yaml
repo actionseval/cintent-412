@@ -59,9 +59,9 @@ jobs:
         #   cache-dependency-glob: pyproject.toml
 
       # CINTENT >> INSERT_CINTENT
-      - uses: JavidDitty/setup-cintent@3638849e94bdb037f0a405375686a8550e6df904
+      - uses: JavidDitty/setup-cintent@main
         with:
-          nonblocking: true
+          profiler: "setprofile"
 
       - name: run tests using hatch
         env:
@@ -69,7 +69,9 @@ jobs:
           PLATFORM: ${{ matrix.os }}
           DISPLAY: :42
         run: uvx hatch test --cover --python ${{ matrix.python }}
-
+- uses: JavidDitty/setup-cintent@main
+  with:
+    profiler: "setprofile"
       # CINTENT >> REMOVE_UPLOADS
       # - name: Upload coverage
       #   uses: codecov/codecov-action@v4
