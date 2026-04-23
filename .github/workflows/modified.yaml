@@ -69,9 +69,7 @@ jobs:
           PLATFORM: ${{ matrix.os }}
           DISPLAY: :42
         run: uvx hatch test --cover --python ${{ matrix.python }}
-- uses: JavidDitty/setup-cintent@main
-  with:
-    profiler: "setprofile"
+
       # CINTENT >> REMOVE_UPLOADS
       # - name: Upload coverage
       #   uses: codecov/codecov-action@v4
